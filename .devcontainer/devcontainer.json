@@ -1,0 +1,146 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {}
+}
+import React, { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import "./styles.css"; // Add basic CSS for styling
+
+// Complete Tarot deck data (Major and Minor Arcana)
+const MAJOR_ARCANA = [
+  {
+    name: "The Fool",
+    number: 0,
+    element: "Air",
+    meaning: "New beginnings, innocence, spontaneity, a free spirit",
+    reversed: "Recklessness, naivety, poor judgment, holding back",
+    image: "/images/the-fool.jpg",
+    sound: "/sounds/the-fool.mp3",
+  },
+  {
+    name: "The Magician",
+    number: 1,
+    element: "Air",
+    meaning: "Manifestation, resourcefulness, power",
+    reversed: "Manipulation, poor planning, untapped talents",
+    image: "/images/the-magician.jpg",
+    sound: "/sounds/the-magician.mp3",
+  },
+  // Add the rest of the Major Arcana cards here...
+];
+
+const SUITS = [
+  { suit: "Wands", element: "Fire" },
+  { suit: "Cups", element: "Water" },
+  { suit: "Swords", element: "Air" },
+  { suit: "Pentacles", element: "Earth" },
+];
+
+const RANKS = [
+  { rank: "Ace", num: 1 },
+  { rank: "Two", num: 2 },
+  { rank: "Three", num: 3 },
+  { rank: "Four", num: 4 },
+  { rank: "Five", num: 5 },
+  { rank: "Six", num: 6 },
+  { rank: "Seven", num: 7 },
+  { rank: "Eight", num: 8 },
+  { rank: "Nine", num: 9 },
+  { rank: "Ten", num: 10 },
+  { rank: "Page", num: 11 },
+  { rank: "Knight", num: 12 },
+  { rank: "Queen", num: 13 },
+  { rank: "King", num: 14 },
+];
+
+// Utility function to generate Minor Arcana cards
+function slugify(name) {
+  return name.toLowerCase().replace(/\s+/g, "-");
+}
+
+function buildMinorArcana() {
+  const cards = [];
+  for (const { suit, element } of SUITS) {
+    for (const { rank } of RANKS) {
+      cards.push({
+        name: `${rank} of ${suit}`,
+        suit,
+        element,
+        meaning: `TODO: Upright meaning for ${rank} of ${suit}`,
+        reversed: `TODO: Reversed meaning for ${rank} of ${suit}`,
+        image: `/images/${slugify(rank)}-of-${slugify(suit)}.jpg`,
+        sound: `/sounds/${slugify(rank)}-of-${slugify(suit)}.mp3`,
+      });
+    }
+  }
+  return cards;
+}
+
+const tarotDeck = [...MAJOR_ARCANA, ...buildMinorArcana()];
+
+// Card Component for displaying individual cards
+const Card = ({ cardData }) => {
+  if (!cardData) return null;
+
+  return (
+    <div className="card-display">
+      <h2>{cardData.name}</h2>
+      <img
+        src={cardData.image}
+        alt={cardData.name}
+        className={cardData.isReversed ? "flipped" : ""}
+      />
+      <p>
+        <strong>Meaning:</strong>{" "}
+        {cardData.isReversed ? cardData.reversed : cardData.meaning}
+      </p>
+      <p>
+        <strong>Element:</strong> {cardData.element}
+      </p>
+      <audio controls src={cardData.sound}></audio>
+    </div>
+  );
+};
+
+// Main App Component
+const TarotApp = () => {
+  const [spread, setSpread] = useState([]);
+
+  // Draw 3 unique cards and assign reversals
+  const drawSpread = (count = 3) => {
+    const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, count).map((card) => ({
+      ...card,
+      isReversed: Math.random() < 0.5,
+    }));
+    setSpread(selected);
+  };
+
+  return (
+    <div className="tarot-app">
+      <h1>🔮 Tarot Reading</h1>
+      <p>Draw a 3-card spread. Cards may appear reversed to reveal alternate meanings.</p>
+      <div className="button-group">
+        <button onClick={() => drawSpread(3)}>Draw 3-Card Spread</button>
+        <button onClick={() => setSpread([])}>Reset</button>
+      </div>
+      {spread.length > 0 && (
+        <div className="spread">
+          {spread.map((card, index) => (
+            <motion.div
+              key={index}
+              initial={{ rotateY: 180, opacity: 0 }}
+              animate={{ rotateY: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: index * 0.25 }}
+            >
+              <Card cardData={card} />
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TarotApp;
+tab
